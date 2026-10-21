@@ -1,0 +1,973 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Kancil Menjelajah Angka</title>
+<meta name="description" content="Gim belajar matematika untuk anak usia 5–15 tahun dengan peta planet dan prasyarat.">
+<meta name="theme-color" content="#131936">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Kancil">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icons/icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+</head>
+<body>
+<style>
+@font-face{font-family:"Fredoka";font-weight:500;font-display:swap;src:url(fonts/fredoka-latin-500-normal.woff2) format("woff2")}
+@font-face{font-family:"Fredoka";font-weight:600;font-display:swap;src:url(fonts/fredoka-latin-600-normal.woff2) format("woff2")}
+@font-face{font-family:"Fredoka";font-weight:700;font-display:swap;src:url(fonts/fredoka-latin-700-normal.woff2) format("woff2")}
+@font-face{font-family:"Atkinson Hyperlegible";font-weight:400;font-display:swap;src:url(fonts/atkinson-hyperlegible-latin-400-normal.woff2) format("woff2")}
+@font-face{font-family:"Atkinson Hyperlegible";font-weight:700;font-display:swap;src:url(fonts/atkinson-hyperlegible-latin-700-normal.woff2) format("woff2")}
+html{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);background:#131936}
+*,*::before,*::after{box-sizing:inherit}
+body{margin:0}
+img{max-width:100%}
+[hidden]{display:none!important}
+/* Layout: one-screen app. Peta planet = pita per jenjang usia yang bisa digulir; layar misi = bar atas / panggung soal / tombol jawaban besar. Satu tema malam luar angkasa. */
+:root{
+  --sky:#131936; --sky2:#1c2450; --panel:#26306a; --line:#3a4584; --line2:#5a66a8;
+  --ink:#f7f1e1; --muted:#aeb5dc; --press:#0a0e22;
+  --carrot:#ff8b3d; --leaf:#55c98a; --star:#ffd257; --berry:#ff5f8c; --sea:#4cb2ff;
+  --display:"Fredoka","Baloo 2",ui-rounded,"SF Pro Rounded",system-ui,sans-serif;
+  --body:"Atkinson Hyperlegible",system-ui,-apple-system,"Segoe UI",sans-serif;
+  color-scheme:dark;
+}
+html,body{height:100%}
+body{background:var(--sky);color:var(--ink);font-family:var(--body);font-size:17px;line-height:1.45;overflow:hidden;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+#app{height:100%;display:flex;flex-direction:column;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  background:
+   radial-gradient(1.6px 1.6px at 8% 12%,#ffffffcc 50%,transparent 52%),
+   radial-gradient(1.2px 1.2px at 22% 64%,#ffffff99 50%,transparent 52%),
+   radial-gradient(1.8px 1.8px at 37% 28%,#ffe9a8cc 50%,transparent 52%),
+   radial-gradient(1.2px 1.2px at 53% 82%,#ffffff88 50%,transparent 52%),
+   radial-gradient(1.6px 1.6px at 66% 16%,#ffffffbb 50%,transparent 52%),
+   radial-gradient(1.2px 1.2px at 78% 52%,#cfe6ffaa 50%,transparent 52%),
+   radial-gradient(1.7px 1.7px at 91% 30%,#ffffffcc 50%,transparent 52%),
+   radial-gradient(1.2px 1.2px at 86% 88%,#ffffff88 50%,transparent 52%),
+   radial-gradient(120% 70% at 80% 0%,#2a2f6e 0%,transparent 60%),
+   var(--sky)}
+button{font:inherit;color:inherit;cursor:pointer}
+:focus-visible{outline:3px solid var(--star);outline-offset:3px}
+h1,h2,h3{font-family:var(--display);font-weight:600;margin:0;text-wrap:balance;line-height:1.15}
+p{margin:0}
+.screen{flex:1;min-height:0;display:flex;flex-direction:column;padding-block:12px;gap:10px}
+.small{font-size:14px;color:var(--muted)}
+.tag{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:700}
+
+/* tombol umum */
+.btn{border:0;border-radius:20px;padding:14px 26px;font-family:var(--display);font-weight:600;font-size:22px;background:var(--ink);color:var(--sky);box-shadow:0 5px 0 var(--muted);min-height:60px}
+.btn:active{transform:translateY(3px);box-shadow:0 2px 0 var(--muted)}
+.btn.big{font-size:30px;padding:18px 40px;min-height:80px;background:var(--carrot);color:var(--press);box-shadow:0 6px 0 #b35a1f}
+.btn.star{background:var(--star);color:var(--press);box-shadow:0 5px 0 #b8902a}
+.btn.ghost{background:transparent;color:var(--ink);box-shadow:none;border:2px solid var(--line2)}
+.btn.sm{font-size:16px;padding:8px 14px;min-height:44px;border-radius:14px;box-shadow:none}
+.btn:disabled{opacity:.5}
+.iconbtn{width:56px;height:56px;flex:none;border-radius:18px;background:var(--panel);border:0;display:grid;place-items:center;color:var(--ink)}
+.iconbtn svg{width:30px;height:30px}
+
+/* layar mulai */
+#start{align-items:center;justify-content:center;text-align:center;gap:18px}
+#start .kc{width:min(240px,50vw);height:auto}
+#start h1{font-size:clamp(34px,6vw,56px)}
+#start p{font-family:var(--display);font-size:24px;color:var(--muted)}
+
+/* peta */
+.mtop{display:flex;align-items:center;gap:12px}
+.mtop .kc{width:62px;height:62px;flex:none}
+.mtop .hi{flex:1;min-width:0}
+.mtop .hi h1{font-size:clamp(22px,3.4vw,30px)}
+.starbox{display:flex;align-items:center;gap:6px;font-family:var(--display);font-size:24px;font-weight:600;background:var(--panel);padding:8px 14px;border-radius:18px;font-variant-numeric:tabular-nums}
+.starbox svg{width:26px;height:26px;color:var(--star)}
+.parent{display:flex;align-items:center;gap:8px;background:transparent;border:2px solid var(--line2);border-radius:16px;padding:8px 12px;font-size:14px;color:var(--muted);min-height:48px}
+.parent svg{width:20px;height:20px}
+.scroll{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+.band{display:grid;gap:12px;padding-block:16px;border-top:2px dashed var(--line)}
+.band:first-child{border-top:0}
+.bhead{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+.bhead h2{font-size:24px}
+.planets{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:14px}
+.band.now .planets{grid-template-columns:repeat(auto-fill,minmax(190px,1fr))}
+.ptile{display:flex;flex-direction:column;align-items:center;gap:8px;padding:16px 10px 14px;border-radius:24px;background:var(--sky2);border:2px solid var(--line);min-width:0;text-align:center}
+.ptile.open{border-color:var(--c)}
+.orb{position:relative;width:78px;height:78px;border-radius:50%;flex:none;display:grid;place-items:center;
+  background:radial-gradient(circle at 32% 28%,#ffffff70 0 10%,transparent 11%),radial-gradient(circle at 35% 35%,var(--c),color-mix(in srgb,var(--c) 40%,#000) 78%);
+  box-shadow:0 0 0 6px color-mix(in srgb,var(--c) 20%,transparent)}
+.band.now .orb{width:112px;height:112px}
+.ptile.locked .orb,.ptile.soon .orb{filter:grayscale(.85) brightness(.55)}
+.orb .lk{width:34px;height:34px;color:var(--ink)}
+.orb .crown{position:absolute;top:-10px;right:-6px;width:38px;height:38px;color:var(--star);filter:drop-shadow(0 2px 0 var(--press))}
+.pname{font-family:var(--display);font-weight:600;font-size:19px;line-height:1.15}
+.band.now .pname{font-size:23px}
+.psub{font-size:13px;color:var(--muted);line-height:1.3}
+.tdots{display:flex;gap:6px}
+.tdots i{width:14px;height:14px;border-radius:50%;background:var(--line);display:block}
+.tdots i.on{background:var(--star)}
+.tdots i.cur{background:transparent;border:3px solid var(--star)}
+
+/* layar planet */
+.phero{display:flex;align-items:center;gap:20px;flex-wrap:wrap}
+.phero .orb{width:120px;height:120px}
+.phero h1{font-size:clamp(30px,5vw,44px)}
+.phero p{color:var(--muted);font-size:18px}
+.pbody{flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:24px;padding-block:8px}
+.path{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.stone{display:flex;flex-direction:column;align-items:center;gap:6px;padding:16px 8px;border-radius:22px;background:var(--sky2);border:3px solid var(--line);text-align:center;min-width:0}
+.stone .sn{width:52px;height:52px;border-radius:50%;display:grid;place-items:center;font-family:var(--display);font-size:28px;font-weight:600;background:var(--line);color:var(--ink)}
+.stone.done{border-color:var(--leaf)} .stone.done .sn{background:var(--leaf);color:var(--press)}
+.stone.now{border-color:var(--star)} .stone.now .sn{background:var(--star);color:var(--press)}
+.stone.lock{opacity:.55}
+.stone .sl{font-family:var(--display);font-weight:600;font-size:18px}
+.stone .sp{font-size:13px;color:var(--muted)}
+.pact{display:flex;gap:16px;flex-wrap:wrap;justify-content:center}
+
+/* layar misi */
+.gtop{display:flex;align-items:center;gap:12px}
+.qdots{flex:1;display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+.qdots i{width:18px;height:18px;border-radius:50%;background:var(--line);display:block}
+.qdots i.ok{background:var(--star)} .qdots i.miss{background:var(--muted)} .qdots i.now{box-shadow:0 0 0 3px var(--ink)}
+.gtop .kc{width:58px;height:58px;flex:none}
+.hop{animation:hop .6s ease}
+@keyframes hop{0%,100%{transform:translateY(0)}40%{transform:translateY(-18px) rotate(-6deg)}70%{transform:translateY(0) rotate(3deg)}}
+.stage{flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;align-items:center;justify-content:safe center;gap:14px;padding-block:6px}
+.prompt{font-family:var(--display);font-weight:500;font-size:clamp(22px,3.4vw,32px);text-align:center;max-width:28ch;text-wrap:balance}
+.eq{font-family:var(--display);font-weight:600;font-size:clamp(52px,10vw,96px);letter-spacing:.02em;font-variant-numeric:tabular-nums;line-height:1}
+.vis{display:flex;flex-direction:column;align-items:center;gap:12px;max-width:100%}
+.hint{font-size:15px;color:var(--muted)}
+.lead{display:flex;align-items:center;gap:12px;font-family:var(--display);font-size:28px}
+.lead b{font-size:48px;color:var(--carrot)}
+.answers{display:flex;gap:16px;justify-content:center;flex-wrap:wrap;padding-block:10px 14px;min-height:60px}
+.ans{min-width:min(118px,22vw);height:min(118px,22vw);min-height:88px;padding:0 10px;border:0;border-radius:30px;font-family:var(--display);font-size:clamp(40px,6vw,56px);font-weight:600;background:var(--ink);color:var(--sky);box-shadow:0 7px 0 var(--muted);font-variant-numeric:tabular-nums}
+.ans:active{transform:translateY(4px);box-shadow:0 3px 0 var(--muted)}
+.ans.good{background:var(--leaf);color:var(--press);box-shadow:0 7px 0 #2e8a58}
+.ans.bad{opacity:.3}
+.ans.reveal{outline:5px solid var(--star);outline-offset:4px}
+.boardhint{align-self:center;font-family:var(--display);font-size:20px;color:var(--muted)}
+.explain{display:flex;flex-direction:column;align-items:center;gap:10px;padding:10px 14px;border-radius:22px;background:var(--sky2);border:2px solid var(--star);max-width:100%}
+.explain .bond{width:min(220px,60vw)}
+.explain .bal{width:min(300px,80vw)}
+.explain .board{width:min(calc(100vw - 72px),40vh,440px)}
+
+/* wortel & keranjang */
+.baskets{display:flex;gap:22px;flex-wrap:wrap;justify-content:center}
+.basket{--b:var(--berry);width:min(250px,40vw);min-height:150px;border:6px solid var(--b);border-radius:14px 14px 48px 48px;background:color-mix(in srgb,var(--b) 16%,transparent);display:flex;flex-wrap:wrap;align-content:center;justify-content:center;gap:4px;padding:12px}
+.basket.blue{--b:var(--sea)}
+.carrot{width:44px;height:54px;display:inline-block}
+.carrot svg{width:100%;height:100%}
+.carrot.ghost{opacity:.28;filter:grayscale(1)}
+.carrot.ghost.on{opacity:1;filter:none}
+.carrot.mini{width:22px;height:28px}
+.row{display:flex;flex-wrap:wrap;gap:2px;max-width:280px}
+.lid{font-family:var(--display);font-size:72px;font-weight:700;color:var(--sea);line-height:1}
+
+/* ten frame */
+.tf{display:grid;grid-template-columns:repeat(5,1fr);gap:7px;padding:9px;background:var(--panel);border-radius:18px;width:min(430px,86vw)}
+.tf.small{width:min(270px,62vw);gap:5px;padding:7px}
+.tfs{display:flex;gap:12px;flex-wrap:wrap;justify-content:center}
+.tfs .tf{width:min(300px,80vw)}
+.cell{aspect-ratio:1;border-radius:12px;border:3px dashed var(--line2);display:grid;place-items:center;position:relative}
+.cell.full{border-style:solid;border-color:transparent;background:var(--sky)}
+.cell svg{width:78%;height:78%;color:var(--star)}
+.cell.c2 svg{color:var(--sea)}
+.cell.tap{cursor:pointer}
+.cell.x svg{opacity:.35}
+.cell.x::after{content:"";position:absolute;left:12%;right:12%;top:50%;height:5px;border-radius:3px;background:var(--berry);transform:rotate(-38deg)}
+
+/* number bond & timbangan */
+.bond{width:min(340px,84vw);height:auto}
+.bal{width:min(420px,90vw);height:auto}
+.bt{font-family:var(--display);font-weight:600;font-size:34px;text-anchor:middle;dominant-baseline:central}
+
+/* papan 100 */
+.board{display:grid;grid-template-columns:repeat(10,minmax(0,1fr));gap:3px;width:min(calc(100vw - 40px),54vh,560px)}
+.bc{aspect-ratio:1;display:grid;place-items:center;border-radius:7px;background:var(--sky2);border:0;padding:0;font-family:var(--display);font-weight:600;font-size:clamp(11px,2vw,20px);color:var(--ink);font-variant-numeric:tabular-nums;min-width:0}
+.board.tappable .bc:active{background:var(--line2)}
+.bc.trail{background:color-mix(in srgb,var(--sea) 55%,var(--sky2))}
+.bc.rk{background:var(--berry);color:var(--press)}
+.board.hidden .bc{color:transparent}
+.board.hidden .bc.shown,.board.hidden .bc.rk{color:var(--press)}
+.bc.good{background:var(--leaf);color:var(--press)}
+.bc.bad{background:var(--muted);color:var(--sky)}
+.bc.reveal{box-shadow:0 0 0 3px var(--star)}
+.move{display:flex;align-items:center;gap:10px;font-family:var(--display);font-size:24px;font-weight:600;background:var(--panel);padding:8px 16px;border-radius:18px}
+.move svg{width:36px;height:36px;color:var(--star)}
+
+/* hasil */
+#result{align-items:center;justify-content:center;text-align:center;gap:16px}
+#result .kc{width:150px;height:150px}
+#result h1{font-size:clamp(32px,5vw,46px)}
+.earned{display:flex;gap:6px;flex-wrap:wrap;justify-content:center}
+.earned svg{width:46px;height:46px;color:var(--star)}
+.earned svg.dim{color:var(--line)}
+.news{list-style:none;margin:0;padding:0;display:grid;gap:8px;max-width:520px}
+.news li{background:var(--sky2);border-radius:16px;padding:10px 16px;font-size:18px}
+
+/* ruang orang tua */
+#dash .scroll{display:flex;flex-direction:column;gap:16px;padding-bottom:24px}
+.dhead{display:flex;align-items:center;gap:14px}
+.dhead h1{font-size:28px}
+.dgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr));gap:16px;align-items:start}
+.panel{background:var(--sky2);border:1px solid var(--line);border-radius:20px;padding:18px;display:grid;gap:12px;min-width:0;-webkit-user-select:text;user-select:text}
+.panel.wide{grid-column:1/-1}
+.panel h2{font-size:21px}
+.kpis{display:flex;gap:18px;flex-wrap:wrap}
+.kpi b{display:block;font-family:var(--display);font-size:34px;font-weight:600;font-variant-numeric:tabular-nums;line-height:1.1}
+.kpi span{font-size:13px;color:var(--muted)}
+.tbl{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:15px}
+th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:700}
+td.num{font-variant-numeric:tabular-nums}
+.chip{display:inline-block;padding:3px 10px;border-radius:999px;font-size:13px;font-weight:700;white-space:nowrap}
+.chip.ok{background:color-mix(in srgb,var(--leaf) 25%,transparent);color:var(--leaf)}
+.chip.go{background:color-mix(in srgb,var(--star) 22%,transparent);color:var(--star)}
+.chip.lock{background:var(--panel);color:var(--muted)}
+.chip.warn{background:color-mix(in srgb,var(--berry) 22%,transparent);color:var(--berry)}
+.chip.soon{background:transparent;color:var(--muted);border:1px dashed var(--line2)}
+.field{display:grid;gap:6px}
+.field label{font-size:14px;color:var(--muted);font-weight:700}
+.field input,.field select,textarea{font:inherit;font-size:17px;color:var(--ink);background:var(--sky);border:2px solid var(--line2);border-radius:12px;padding:10px 12px;min-height:48px;width:100%;box-sizing:border-box}
+textarea{min-height:120px;font-family:ui-monospace,Menlo,monospace;font-size:12px}
+.check{display:flex;align-items:center;gap:10px;font-size:16px}
+.check input{width:26px;height:26px}
+.rowb{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.rules{margin:0;padding-left:20px;display:grid;gap:6px;color:var(--ink)}
+.rules li{max-width:65ch}
+.chart{width:100%;height:auto;max-width:340px}
+.msg{font-size:14px;color:var(--star);min-height:1.2em}
+
+/* modal */
+.modal{position:fixed;inset:0;background:color-mix(in srgb,var(--press) 78%,transparent);display:grid;place-items:center;padding:max(16px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(16px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));z-index:20}
+.mbox{background:var(--sky2);border:2px solid var(--line2);border-radius:24px;padding:24px;width:min(440px,100%);display:grid;gap:14px;text-align:center;justify-items:center}
+.mbox .kc{width:120px;height:120px}
+.mbox h3{font-size:26px}
+.mbox input{font:inherit;font-family:var(--display);font-size:32px;text-align:center;width:160px;padding:8px;border-radius:14px;border:2px solid var(--line2);background:var(--sky);color:var(--ink)}
+
+@media (max-width:520px){
+  .path{grid-template-columns:1fr}
+  .stone{flex-direction:row;justify-content:flex-start;text-align:left}
+  .parent span{display:none}
+  .mtop .kc{display:none}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="kancil" viewBox="0 0 120 120">
+    <circle cx="60" cy="54" r="46" style="fill:#9fd3ff;opacity:.16"/>
+    <path d="M28 104 Q60 82 92 104 L94 120 L26 120Z" style="fill:#e9eef8"/>
+    <circle cx="60" cy="106" r="6" style="fill:#ff8b3d"/>
+    <path d="M37 36 L41 9 L53 33Z" style="fill:#a9652f"/>
+    <path d="M67 33 L79 9 L83 36Z" style="fill:#a9652f"/>
+    <path d="M41 30 L43 16 L49 31Z" style="fill:#f2c79a"/>
+    <path d="M71 31 L77 16 L79 30Z" style="fill:#f2c79a"/>
+    <ellipse cx="60" cy="54" rx="27" ry="25" style="fill:#c98345"/>
+    <ellipse cx="60" cy="69" rx="16" ry="12" style="fill:#f2d3ae"/>
+    <circle cx="49" cy="49" r="4.5" style="fill:#24160c"/>
+    <circle cx="71" cy="49" r="4.5" style="fill:#24160c"/>
+    <circle cx="50.6" cy="47.4" r="1.6" style="fill:#ffffff"/>
+    <circle cx="72.6" cy="47.4" r="1.6" style="fill:#ffffff"/>
+    <ellipse cx="60" cy="64" rx="5" ry="3.6" style="fill:#24160c"/>
+    <path d="M54 73 Q60 78 66 73" style="fill:none;stroke:#24160c;stroke-width:2.4;stroke-linecap:round"/>
+    <circle cx="60" cy="54" r="46" style="fill:none;stroke:#cfe8ff;stroke-width:3.5"/>
+    <path d="M30 30 Q40 16 56 13" style="fill:none;stroke:#ffffff;stroke-width:4;stroke-linecap:round;opacity:.55"/>
+  </symbol>
+  <symbol id="carrot" viewBox="0 0 40 50">
+    <path d="M19 15 C13 8 9 6 6 8 C10 10 14 12 17 16Z M20 15 C20 7 22 2 25 2 C24 7 23 11 21 16Z M21 16 C26 9 31 7 34 9 C30 11 26 13 22 17Z" style="fill:#55c98a"/>
+    <path d="M11 19 Q20 12 29 19 L21 47 Q20 50 19 47Z" style="fill:#ff8b3d"/>
+    <path d="M14 25 h6 M16 32 h5 M18 39 h3" style="stroke:#d0601c;stroke-width:2;stroke-linecap:round"/>
+  </symbol>
+  <symbol id="star" viewBox="0 0 24 24"><path d="M12 2l2.9 6.6 7.1.7-5.4 4.7 1.6 7-6.2-3.7-6.2 3.7 1.6-7L2 9.3l7.1-.7z" style="fill:currentColor"/></symbol>
+  <symbol id="lock" viewBox="0 0 24 24"><path d="M7 10V7a5 5 0 0 1 10 0v3" style="fill:none;stroke:currentColor;stroke-width:2.4"/><rect x="4.5" y="10" width="15" height="11" rx="3" style="fill:currentColor"/></symbol>
+  <symbol id="speaker" viewBox="0 0 24 24"><path d="M4 9h4l5-4v14l-5-4H4z" style="fill:currentColor"/><path d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12" style="fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round"/></symbol>
+  <symbol id="home" viewBox="0 0 24 24"><path d="M3 11.5 12 4l9 7.5" style="fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round"/><path d="M6 10.5V20h4.5v-5h3v5H18v-9.5" style="fill:currentColor"/></symbol>
+  <symbol id="gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2" style="fill:none;stroke:currentColor;stroke-width:2"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1" style="stroke:currentColor;stroke-width:2;stroke-linecap:round"/></symbol>
+  <symbol id="arrow" viewBox="0 0 24 24"><path d="M4 12h13M12 6l6 6-6 6" style="fill:none;stroke:currentColor;stroke-width:3;stroke-linecap:round;stroke-linejoin:round"/></symbol>
+  <symbol id="crown" viewBox="0 0 24 24"><path d="M3 8l4.5 4L12 5l4.5 7L21 8l-2 11H5z" style="fill:currentColor"/></symbol>
+</svg>
+
+<div id="app">
+  <section class="screen" id="start">
+    <svg class="kc" viewBox="0 0 120 120" aria-hidden="true"><use href="#kancil"/></svg>
+    <h1>Kancil Menjelajah Angka</h1>
+    <p id="startHello">Halo!</p>
+    <button class="btn big" id="startBtn" disabled>Menyiapkan…</button>
+  </section>
+
+  <section class="screen" id="map" hidden>
+    <div class="mtop">
+      <svg class="kc" viewBox="0 0 120 120" aria-hidden="true"><use href="#kancil"/></svg>
+      <div class="hi"><h1 id="hello">Halo!</h1><p class="small">Pilih planet yang menyala</p></div>
+      <div class="starbox" aria-label="Jumlah bintang"><svg viewBox="0 0 24 24"><use href="#star"/></svg><span id="starCount">0</span></div>
+      <button class="parent" id="toDash"><svg viewBox="0 0 24 24"><use href="#gear"/></svg><span>Orang tua</span></button>
+    </div>
+    <div class="scroll" id="mapScroll"></div>
+  </section>
+
+  <section class="screen" id="planet" hidden>
+    <div class="gtop"><button class="iconbtn" id="planetBack" aria-label="Kembali ke peta"><svg viewBox="0 0 24 24"><use href="#home"/></svg></button></div>
+    <div class="pbody" id="planetBody"></div>
+  </section>
+
+  <section class="screen" id="game" hidden>
+    <div class="gtop">
+      <button class="iconbtn" id="gameHome" aria-label="Kembali ke peta"><svg viewBox="0 0 24 24"><use href="#home"/></svg></button>
+      <div class="qdots" id="qdots"></div>
+      <svg class="kc" id="gameKancil" viewBox="0 0 120 120" aria-hidden="true"><use href="#kancil"/></svg>
+      <button class="iconbtn" id="sayAgain" aria-label="Dengar lagi"><svg viewBox="0 0 24 24"><use href="#speaker"/></svg></button>
+    </div>
+    <div class="stage" id="stage"></div>
+    <div class="answers" id="answers"></div>
+  </section>
+
+  <section class="screen" id="result" hidden></section>
+
+  <section class="screen" id="dash" hidden>
+    <div class="scroll" id="dashBody"></div>
+  </section>
+</div>
+<div class="modal" id="modal" hidden><div class="mbox" id="mbox"></div></div>
+
+<script>
+(function(){
+'use strict';
+const $=(s,r=document)=>r.querySelector(s);
+const ri=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function dayKey(d){d=d||new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+const ico=(id,cls)=>`<svg class="${cls||''}" viewBox="0 0 24 24" aria-hidden="true"><use href="#${id}"/></svg>`;
+
+/* ---------- Peta kurikulum usia 5–15 dan prasyarat ---------- */
+const BANDS=[
+  {age:'Usia 5–6',lvl:'TK B'},
+  {age:'Usia 6–7',lvl:'SD kelas 1'},
+  {age:'Usia 7–9',lvl:'SD kelas 2–3'},
+  {age:'Usia 9–12',lvl:'SD kelas 4–6'},
+  {age:'Usia 12–15',lvl:'SMP · ranah OSN'}
+];
+const PLANETS=[
+  {id:'p1',name:'Planet Wortel',topic:'Pecah bilangan sampai 10',band:0,pre:[],c:'#ff8b3d',ready:true,hi:'Ayo bantu Kelinci membagi wortel ke keranjang.'},
+  {id:'p2',name:'Planet Sepuluh',topic:'Pasangan 10, tambah dan kurang sampai 20',band:0,pre:['p1'],c:'#ffd257',ready:true,hi:'Ayo bantu Burung Hantu mengumpulkan sepuluh bintang.'},
+  {id:'p3',name:'Planet Roket',topic:'Papan 100, hitung loncat, nilai tempat',band:0,pre:[],c:'#4cb2ff',ready:true,hi:'Ayo terbangkan roket di papan seratus.'},
+  {id:'p4',name:'Planet Puluhan',topic:'Nilai tempat, tambah dan kurang dua angka',band:1,pre:['p2','p3'],c:'#55c98a'},
+  {id:'p5',name:'Planet Pola',topic:'Pola, bentuk, dan puzzle ruang',band:1,pre:['p1'],c:'#ff5f8c'},
+  {id:'p6',name:'Planet Kali',topic:'Perkalian dan pembagian',band:2,pre:['p4','p5'],c:'#b48cff'},
+  {id:'p7',name:'Planet Potong',topic:'Pecahan awal',band:2,pre:['p6'],c:'#ff9f6e'},
+  {id:'p8',name:'Planet Ukur',topic:'Pengukuran, uang, dan waktu',band:2,pre:['p4'],c:'#6fd6c8'},
+  {id:'p9',name:'Planet Cerita',topic:'Soal cerita dengan model batang',band:2,pre:['p6'],c:'#f0a3ff'},
+  {id:'p10',name:'Planet Pecahan',topic:'Pecahan dan desimal',band:3,pre:['p7'],c:'#ffc46b'},
+  {id:'p11',name:'Planet Rasio',topic:'Rasio, skala, dan persen',band:3,pre:['p10'],c:'#7fa8ff'},
+  {id:'p12',name:'Planet Bangun',topic:'Geometri bangun datar dan ruang',band:3,pre:['p8'],c:'#9be27a'},
+  {id:'p13',name:'Planet Logika',topic:'Logika dan strategi pemecahan masalah',band:3,pre:['p9'],c:'#ff7a7a'},
+  {id:'p14',name:'Planet Olimpiade SD',topic:'Soal gaya OSN SD',band:3,pre:['p11','p12','p13'],c:'#ffe08a'},
+  {id:'p15',name:'Planet Aljabar',topic:'Aljabar dan persamaan',band:4,pre:['p11'],c:'#8fd3ff'},
+  {id:'p16',name:'Planet Bilangan',topic:'Teori bilangan',band:4,pre:['p13'],c:'#d4a3ff'},
+  {id:'p17',name:'Planet Cacah',topic:'Kombinatorika dan peluang',band:4,pre:['p13'],c:'#ffb3c7'},
+  {id:'p18',name:'Planet Sudut',topic:'Geometri lanjut',band:4,pre:['p12','p15'],c:'#a3e6b8'},
+  {id:'p19',name:'Planet Bukti',topic:'Pembuktian dan soal OSN SMP',band:4,pre:['p15','p16','p17','p18'],c:'#fff1b8'}
+];
+const PL={};PLANETS.forEach(p=>PL[p.id]=p);
+const TINGKAT=['Dibantu','Sedikit bantuan','Mandiri'];
+const RUN_LEN={latihan:6,tantangan:5,tes:5};
+
+/* ---------- Status & penyimpanan ---------- */
+const KEY='kancil-angka-v1';
+function fresh(){
+  const p={};PLANETS.forEach(x=>p[x.id]={t:[{h:[],m:false},{h:[],m:false},{h:[],m:false}],c:{h:[]},skip:false,open:false});
+  return {v:1,name:'Penjelajah',settings:{daily:15,voice:true,rate:0.9},planets:p,sess:0,stars:0,log:{},extra:null,updatedAt:0};
+}
+function migrate(s){
+  const f=fresh();if(!s||typeof s!=='object'||!s.planets)return f;
+  const o=Object.assign(f,s);
+  o.settings=Object.assign(fresh().settings,s.settings||{});
+  PLANETS.forEach(x=>{if(!o.planets[x.id])o.planets[x.id]=fresh().planets[x.id];});
+  o.log=s.log||{};return o;
+}
+let state=fresh();let hadLocal=false;
+try{const raw=localStorage.getItem(KEY);if(raw){state=migrate(JSON.parse(raw));hadLocal=true;}}catch(e){}
+function saveLocal(){try{localStorage.setItem(KEY,JSON.stringify(state));}catch(e){}}
+function save(){state.updatedAt=Date.now();saveLocal();queueRemote();}
+
+const remote={ref:null,busy:false,again:false,timer:0,status:'Tersimpan di perangkat ini'};
+function queueRemote(){if(!remote.ref)return;clearTimeout(remote.timer);remote.timer=setTimeout(pushRemote,2500);}
+async function pushRemote(){
+  if(!remote.ref)return;
+  if(remote.busy){remote.again=true;return;}
+  remote.busy=true;
+  try{await remote.ref.set({state:JSON.parse(JSON.stringify(state))});remote.status='Tersimpan di akun dan perangkat ini';}
+  catch(e){remote.status='Tersimpan di perangkat ini (sinkron akun gagal)';}
+  remote.busy=false;
+  if(remote.again){remote.again=false;queueRemote();}
+}
+const dlP=Promise.resolve(null);
+let ready=false;
+function setReady(){
+  if(ready)return;ready=true;
+  const b=$('#startBtn');b.disabled=false;b.textContent='Mulai';
+  $('#startHello').textContent='Halo, '+state.name+'!';
+}
+setReady();
+try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist();}catch(e){}
+document.addEventListener('visibilitychange',()=>{if(document.hidden&&remote.timer){clearTimeout(remote.timer);pushRemote();}});
+
+/* ---------- Aturan penguasaan & prasyarat ---------- */
+function masteredHist(h){
+  const w=h.slice(-10);if(w.length<8)return false;
+  const ok=w.filter(e=>e[0]).length;if(ok/w.length<0.8)return false;
+  return new Set(w.map(e=>e[1])).size>=2;
+}
+const isMastered=id=>{const P=state.planets[id];return !!(P.skip||P.t[2].m);};
+const isOpen=id=>{const P=state.planets[id];return P.open||PL[id].pre.every(isMastered);};
+const tOpen=(id,k)=>k===0||isMastered(id)||state.planets[id].t[k-1].m;
+function curT(id){if(isMastered(id))return 2;const P=state.planets[id];for(let k=0;k<3;k++)if(!P.t[k].m)return k;return 2;}
+const openIds=()=>PLANETS.filter(p=>isOpen(p.id)).map(p=>p.id);
+function record(pid,k,ok,sess){
+  const P=state.planets[pid],ev=[],ent=[ok?1:0,sess];
+  if(k==='c'){P.c.h.push(ent);P.c.h=P.c.h.slice(-30);return ev;}
+  const T=P.t[k];T.h.push(ent);T.h=T.h.slice(-30);
+  if(!T.m&&masteredHist(T.h)){
+    const before=openIds();T.m=true;ev.push({type:'tingkat',pid,k});
+    if(k===2){ev.push({type:'planet',pid});openIds().filter(i=>!before.includes(i)).forEach(i=>ev.push({type:'open',pid:i}));}
+  }
+  return ev;
+}
+function winStat(h){const w=h.slice(-10);return {n:w.length,ok:w.filter(e=>e[0]).length,s:new Set(w.map(e=>e[1])).size};}
+function needText(pid,k){
+  const P=state.planets[pid];if(P.skip||P.t[k].m)return '';
+  const w=winStat(P.t[k].h),next=k<2?`Tingkat ${k+2} terbuka`:`${PL[pid].name} dikuasai`;
+  if(!w.n)return '';
+  if(w.n<8||w.s<2){const ok=w.n?w.ok/w.n>=0.8:false;return ok?`Main 1 misi lagi, lalu ${next}!`:`Terus latihan, nanti ${next}.`;}
+  return `Terus latihan, nanti ${next}. Perlu 8 dari 10 jawaban terakhir benar.`;
+}
+
+/* ---------- Pembuat soal ---------- */
+function mk(ans,n,min,max,pref){
+  const s=[ans];
+  shuffle((pref||[]).slice()).forEach(p=>{if(s.length<n&&p>=min&&p<=max&&!s.includes(p))s.push(p);});
+  shuffle([1,-1,2,-2,3,-3].map(d=>ans+d)).forEach(p=>{if(s.length<n&&p>=min&&p<=max&&!s.includes(p))s.push(p);});
+  for(let p=min;s.length<n&&p<=max;p++)if(!s.includes(p))s.push(p);
+  return s.sort((a,b)=>a-b);
+}
+const STAR=ico('star');
+function carrots(n,cls){let h='';for(let i=0;i<n;i++)h+=`<span class="carrot ${cls||''}" ${cls==='ghost'?'data-tap="1"':''}><svg viewBox="0 0 40 50"><use href="#carrot"/></svg></span>`;return h;}
+const basket=(c,inner)=>`<div class="basket ${c}">${inner}</div>`;
+function tf(filled,o){
+  o=o||{};let h=`<div class="tf${o.small?' small':''}">`;
+  for(let i=0;i<10;i++){
+    let cls='cell',inner='',tap='';
+    if(i<filled){cls+=' full';inner=STAR;if(o.c2&&i>=filled-o.c2)cls+=' c2';if(o.cross&&i>=filled-o.cross)cls+=' x';}
+    else if(o.tap){cls+=' tap';tap='data-tap="1"';}
+    h+=`<span class="${cls}" ${tap}>${inner}</span>`;
+  }
+  return h+'</div>';
+}
+function bond(total,parts,hi){
+  const W=320,tx=160,ty=52,by=160,xs=parts.length===2?[80,240]:[55,160,265];
+  let s=`<svg class="bond" viewBox="0 0 ${W} 210" role="img" aria-label="Ikatan bilangan ${total}">`;
+  xs.forEach(x=>s+=`<line x1="${tx}" y1="${ty}" x2="${x}" y2="${by}" style="stroke:var(--line2);stroke-width:5;stroke-linecap:round"/>`);
+  s+=`<circle cx="${tx}" cy="${ty}" r="44" style="fill:var(--carrot)"/><text x="${tx}" y="${ty}" class="bt" style="fill:var(--press);font-size:42px">${total}</text>`;
+  parts.forEach((p,i)=>{
+    const u=p==null;
+    const fill=u?'var(--sky)':(i===hi?'var(--leaf)':'var(--panel)');
+    s+=`<circle cx="${xs[i]}" cy="${by}" r="38" style="fill:${fill};stroke:${u?'var(--star)':'var(--line2)'};stroke-width:4${u?';stroke-dasharray:9 6':''}"/>`;
+    s+=`<text x="${xs[i]}" y="${by}" class="bt" style="fill:${u?'var(--star)':(i===hi?'var(--press)':'var(--ink)')}">${u?'?':p}</text>`;
+  });
+  return s+'</svg>';
+}
+function balance(L,R){
+  return `<svg class="bal" viewBox="0 0 380 210" role="img" aria-label="Timbangan ${esc(L)} dan ${esc(R)}">
+  <path d="M190 78 L158 190 H222Z" style="fill:var(--panel)"/>
+  <rect x="40" y="70" width="300" height="12" rx="6" style="fill:var(--muted)"/>
+  <circle cx="190" cy="76" r="10" style="fill:var(--star)"/>
+  <path d="M70 82 L46 132 M70 82 L94 132 M310 82 L286 132 M310 82 L334 132" style="stroke:var(--muted);stroke-width:3"/>
+  <path d="M34 132 H106 Q70 162 34 132Z" style="fill:var(--berry)"/>
+  <path d="M274 132 H346 Q310 162 274 132Z" style="fill:var(--sea)"/>
+  <rect x="10" y="10" width="120" height="50" rx="14" style="fill:var(--sky2);stroke:var(--berry);stroke-width:3"/>
+  <rect x="250" y="10" width="120" height="50" rx="14" style="fill:var(--sky2);stroke:var(--sea);stroke-width:3"/>
+  <text x="70" y="36" class="bt" style="fill:var(--ink);font-size:30px">${esc(L)}</text>
+  <text x="310" y="36" class="bt" style="fill:var(--ink);font-size:30px">${esc(R)}</text></svg>`;
+}
+function board(o){
+  let h=`<div class="board${o.hidden?' hidden':''}${o.tap?' tappable':''}">`;
+  for(let n=1;n<=100;n++){
+    let cls='bc';
+    if(o.trail&&o.trail.includes(n))cls+=' trail';
+    if(o.show&&o.show.includes(n))cls+=' shown';
+    if(n===o.rocket)cls+=' rk';
+    h+=o.tap?`<button class="${cls}" data-n="${n}" aria-label="${n}">${n}</button>`:`<span class="${cls}">${n}</span>`;
+  }
+  return h+'</div>';
+}
+const moveTag=(rot,label)=>`<div class="move"><svg viewBox="0 0 24 24" style="transform:rotate(${rot}deg)" aria-hidden="true"><use href="#arrow"/></svg><span>${label}</span></div>`;
+
+function genP1(k){
+  if(k==='c'){
+    const N=ri(6,10),a=ri(1,N-3),b=ri(1,N-a-1),ans=N-a-b;
+    return {kind:'choice',ans,choices:mk(ans,4,0,10,[N-a,ans+1,ans-1]),
+      say:`Kancil punya ${N} wortel untuk tiga keranjang. Keranjang pertama ${a}, keranjang kedua ${b}. Berapa wortel di keranjang ketiga?`,
+      text:`${N} wortel dibagi ke tiga keranjang`,html:bond(N,[a,b,null]),
+      exp:{say:`${a} tambah ${b} jadi ${a+b}. Supaya jadi ${N}, perlu ${ans} lagi. Jadi keranjang ketiga ${ans}.`,html:bond(N,[a,b,ans],2)}};
+  }
+  const N=k===0?ri(3,6):ri(5,10),a=ri(1,N-1),b=N-a;
+  const say=`Kancil punya ${N} wortel. Di keranjang merah ada ${a}. Berapa wortel di keranjang biru?`;
+  let html,text='Berapa wortel di keranjang biru?';
+  if(k===0)html=`<div class="lead"><b>${N}</b> wortel</div><div class="baskets">${basket('red',carrots(a))}${basket('blue',carrots(b,'ghost'))}</div><p class="hint">Sentuh wortel yang samar untuk menghitung</p>`;
+  else if(k===1)html=`<div class="lead"><span class="row">${carrots(N,'mini')}</span><b>${N}</b></div><div class="baskets">${basket('red',carrots(a))}${basket('blue','<span class="lid">?</span>')}</div>`;
+  else{html=bond(N,[a,null]);text=`${N} itu ${a} dan berapa?`;}
+  return {kind:'choice',ans:b,choices:mk(b,k===2?4:3,0,N,[b+1,b-1,a]),say,text,html,
+    exp:{say:`${a} dan ${b}, semuanya jadi ${N}.`,html:bond(N,[a,b],1)}};
+}
+function genP2(k){
+  if(k==='c'){
+    let a,b;do{a=ri(2,8);b=ri(1,10-a);}while(a+b<4);
+    const c=ri(1,a+b-1),ans=a+b-c;
+    return {kind:'choice',ans,choices:mk(ans,4,0,10,[a+b,ans+1,ans-1]),
+      say:`Timbangan harus seimbang. ${a} tambah ${b} sama dengan ${c} tambah berapa?`,
+      text:'Timbangan harus seimbang',html:balance(`${a} + ${b}`,`${c} + ?`),
+      exp:{say:`${a} tambah ${b} jadi ${a+b}. ${c} tambah ${ans} juga jadi ${a+b}. Seimbang!`,html:balance(`${a+b}`,`${c} + ${ans}`)}};
+  }
+  if(k===0){
+    const a=ri(1,9),ans=10-a;
+    return {kind:'choice',ans,choices:mk(ans,3,0,10,[a]),
+      say:`Ada ${a} bintang. Berapa bintang lagi supaya jadi sepuluh?`,text:`Berapa bintang lagi supaya jadi 10?`,
+      html:tf(a,{tap:true})+'<p class="hint">Sentuh kotak kosong untuk menghitung</p>',
+      exp:{say:`${a} tambah ${ans} jadi sepuluh.`,html:tf(10,{c2:ans})}};
+  }
+  if(k===1){
+    const a=ri(1,9),ans=10-a;
+    if(Math.random()<0.6)return {kind:'choice',ans,choices:mk(ans,4,0,10,[a]),eq:true,
+      say:`${a} tambah berapa jadi sepuluh?`,text:`${a} + ? = 10`,html:tf(a,{small:true}),
+      exp:{say:`${a} tambah ${ans} jadi sepuluh.`,html:tf(10,{c2:ans})}};
+    return {kind:'choice',ans,choices:mk(ans,4,0,10,[a]),eq:true,
+      say:`Sepuluh kurang ${a}, jadi berapa?`,text:`10 − ${a} = ?`,html:tf(10,{small:true,cross:a}),
+      exp:{say:`Sepuluh bintang, diambil ${a}, sisa ${ans}.`,html:tf(10,{cross:a})}};
+  }
+  if(Math.random()<0.55){
+    const a=ri(6,9),b=ri(11-a,9),ans=a+b,t=10-a,r=b-t;
+    return {kind:'choice',ans,choices:mk(ans,4,0,20,[ans-1,ans+1,ans-10]),eq:true,
+      say:`${a} tambah ${b}, jadi berapa?`,text:`${a} + ${b} = ?`,html:'',
+      exp:{say:`${a} tambah ${t} jadi sepuluh. Sisanya ${r}. Sepuluh tambah ${r} jadi ${ans}.`,html:`<div class="tfs">${tf(10,{c2:t})}${tf(r,{c2:r})}</div>`}};
+  }
+  const c=ri(11,18),d=ri(c-9,9),ans=c-d,e=c-10,rest=d-e;
+  return {kind:'choice',ans,choices:mk(ans,4,0,20,[ans+1,ans-1,ans+10]),eq:true,
+    say:`${c} kurang ${d}, jadi berapa?`,text:`${c} − ${d} = ?`,html:'',
+    exp:{say:`${c} kurang ${e} dulu, jadi sepuluh. Lalu kurang ${rest} lagi, jadi ${ans}.`,html:`<div class="tfs">${tf(10,{cross:rest})}${tf(e,{cross:e})}</div>`}};
+}
+const MOVES={
+  down:{d:10,say:'turun satu baris',tip:'artinya tambah sepuluh',rot:90,lab:'Turun 1 baris'},
+  up:{d:-10,say:'naik satu baris',tip:'artinya kurang sepuluh',rot:-90,lab:'Naik 1 baris'},
+  right:{d:1,say:'geser ke kanan satu',tip:'artinya tambah satu',rot:0,lab:'Kanan 1'},
+  left:{d:-1,say:'geser ke kiri satu',tip:'artinya kurang satu',rot:180,lab:'Kiri 1'}
+};
+function genP3(k){
+  if(k===0||k===1){
+    let seq,ans,word;
+    if(k===0){
+      if(Math.random()<0.7){const s=ri(1,7)*10;seq=[s,s+10,s+20];ans=s+30;word='lompat sepuluh sepuluh';}
+      else{const s=ri(1,97);seq=[s,s+1,s+2];ans=s+3;word='maju satu satu';}
+    }else{
+      const f=pick(['5','2','m1','m10']);
+      if(f==='5'){const j=ri(1,17);seq=[5*j,5*j+5,5*j+10];ans=5*j+15;word='lompat lima lima';}
+      else if(f==='2'){const j=ri(1,47);seq=[2*j,2*j+2,2*j+4];ans=2*j+6;word='lompat dua dua';}
+      else if(f==='m1'){const s=ri(4,100);seq=[s,s-1,s-2];ans=s-3;word='mundur satu satu';}
+      else{const j=ri(4,10);seq=[10*j,10*j-10,10*j-20];ans=10*j-30;word='mundur sepuluh sepuluh';}
+    }
+    const last=seq[2];
+    return {kind:'board',ans,say:`Roket ${word}: ${seq.join(', ')}. Berikutnya mendarat di angka berapa? Sentuh di papan.`,
+      text:`Roket ${word}: ${seq.join(', ')}, …`,html:board({trail:seq.slice(0,2),rocket:last,tap:true}),
+      exp:{say:`Dari ${last}, roket ${word.replace(/ (\w+)$/,'')} lagi, jadi ${ans}.`}};
+  }
+  if(k===2){
+    let m,s;const ok=(m,s)=>m==='down'?s<=90:m==='up'?s>10:m==='right'?s%10!==0:s%10!==1;
+    do{m=pick(['down','down','up','up','right','left']);s=ri(1,100);}while(!ok(m,s));
+    const mv=MOVES[m],ans=s+mv.d;
+    const pref=m==='down'?[s+1,s+11,s+9]:m==='up'?[s-1,s-11,s-9]:m==='right'?[s+10,s+2,s-1]:[s-10,s-2,s+1];
+    return {kind:'choice',ans,choices:mk(ans,4,1,100,pref),
+      say:`Roket di angka ${s}. Roket ${mv.say}. Sekarang di angka berapa?`,
+      text:`Roket di ${s}. Sekarang di mana?`,html:moveTag(mv.rot,mv.lab)+board({hidden:true,rocket:s,show:[s]}),
+      exp:{say:`${mv.say[0].toUpperCase()+mv.say.slice(1)} ${mv.tip}. ${s} ${mv.d>0?'tambah':'kurang'} ${Math.abs(mv.d)} jadi ${ans}.`,html:board({rocket:s,trail:[ans],show:[s,ans]})}};
+  }
+  // tantangan: dua langkah
+  let s,rows,cols,row,col;
+  do{rows=pick([-2,-1,1,2]);cols=pick([-2,-1,1,2]);s=ri(1,100);row=Math.ceil(s/10);col=((s-1)%10)+1;}
+  while(row+rows<1||row+rows>10||col+cols<1||col+cols>10);
+  const mid=s+rows*10,ans=mid+cols,n=x=>Math.abs(x)===1?'satu':'dua';
+  const say1=`${rows>0?'turun':'naik'} ${n(rows)} baris`,say2=`geser ke ${cols>0?'kanan':'kiri'} ${n(cols)}`;
+  return {kind:'choice',ans,choices:mk(ans,4,1,100,[mid,s+cols,s+rows+cols*10,ans+10,ans-10]),
+    say:`Roket di angka ${s}. Roket ${say1}, lalu ${say2}. Sekarang di angka berapa?`,
+    text:`Roket di ${s}: ${say1}, lalu ${say2}`,
+    html:`<div class="rowb">${moveTag(rows>0?90:-90,`${Math.abs(rows)} baris`)}${moveTag(cols>0?0:180,`${Math.abs(cols)} kotak`)}</div>`+board({hidden:true,rocket:s,show:[s]}),
+    exp:{say:`${s} ${rows>0?'tambah':'kurang'} ${Math.abs(rows)*10} jadi ${mid}. Lalu ${cols>0?'tambah':'kurang'} ${Math.abs(cols)} jadi ${ans}.`,html:board({rocket:s,trail:[mid],show:[s,mid,ans]})}};
+}
+const GEN={p1:genP1,p2:genP2,p3:genP3};
+
+/* ---------- Suara & efek ---------- */
+let actx=null;
+function fx(kind){
+  if(!actx)return;
+  try{
+    const t=actx.currentTime;
+    const notes=kind==='good'?[[660,0],[880,.11],[1320,.22]]:[[300,0],[240,.12]];
+    notes.forEach(([f,d])=>{const o=actx.createOscillator(),g=actx.createGain();o.type=kind==='good'?'sine':'triangle';o.frequency.value=f;
+      g.gain.setValueAtTime(0.0001,t+d);g.gain.exponentialRampToValueAtTime(0.16,t+d+.02);g.gain.exponentialRampToValueAtTime(0.0001,t+d+.25);
+      o.connect(g).connect(actx.destination);o.start(t+d);o.stop(t+d+.3);});
+  }catch(e){}
+}
+function idVoice(){try{return speechSynthesis.getVoices().find(v=>/^id/i.test(v.lang))||null;}catch(e){return null;}}
+function say(t){
+  if(!state.settings.voice||!('speechSynthesis' in window)||!t)return;
+  try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.lang='id-ID';const v=idVoice();if(v)u.voice=v;u.rate=state.settings.rate;u.pitch=1.08;speechSynthesis.speak(u);}catch(e){}
+}
+const PRAISE=['Hebat!','Betul sekali!','Pintar, {n}!','Keren!','Mantap, {n}!','Tepat sekali!'];
+const RETRY=['Hampir! Coba lagi ya.','Belum tepat. Coba hitung lagi pelan-pelan.','Tidak apa-apa, coba sekali lagi.'];
+
+/* ---------- Navigasi ---------- */
+let screen='start';
+function show(id){
+  ['start','map','planet','game','result','dash'].forEach(s=>$('#'+s).hidden=s!==id);screen=id;
+}
+function hop(el){if(!el)return;el.classList.remove('hop');void el.getBoundingClientRect();el.classList.add('hop');}
+
+/* ---------- Waktu harian ---------- */
+function logToday(){const t=dayKey();return state.log[t]||(state.log[t]={sec:0,q:0,ok:0});}
+function limitSec(){const ex=state.extra&&state.extra.date===dayKey()?state.extra.min:0;return (state.settings.daily+ex)*60;}
+const overLimit=()=>logToday().sec>=limitSec();
+setInterval(()=>{if(screen==='game'&&!document.hidden){const L=logToday();L.sec++;if(L.sec%15===0)save();}},1000);
+
+/* ---------- Peta ---------- */
+function renderMap(){
+  let h='';
+  BANDS.forEach((b,bi)=>{
+    const ps=PLANETS.filter(p=>p.band===bi);
+    h+=`<section class="band${bi===0?' now':''}"><div class="bhead"><h2>${b.age}</h2><span class="tag">${b.lvl}</span></div><div class="planets">${ps.map(tile).join('')}</div></section>`;
+  });
+  $('#mapScroll').innerHTML=h;
+  $('#starCount').textContent=state.stars;
+  $('#hello').textContent='Halo, '+state.name+'!';
+}
+function tile(p){
+  const open=isOpen(p.id),m=isMastered(p.id),P=state.planets[p.id];
+  const st=!open?'locked':(!p.ready?'soon':(m?'done':'open'));
+  let dots='';
+  if(p.ready)dots='<span class="tdots">'+[0,1,2].map(i=>`<i class="${P.t[i].m||P.skip?'on':(open&&i===curT(p.id)?'cur':'')}"></i>`).join('')+'</span>';
+  const sub=st==='locked'?'Buka setelah '+p.pre.map(i=>PL[i].name.replace('Planet ','')).join(' + '):st==='soon'?'Segera dibuat':st==='done'?'Dikuasai':'Tingkat '+(curT(p.id)+1)+' · '+TINGKAT[curT(p.id)];
+  return `<button class="ptile ${st}" data-p="${p.id}" style="--c:${p.c}"><span class="orb">${st==='locked'?ico('lock','lk'):''}${m?ico('crown','crown'):''}</span><span class="pname">${p.name}</span>${dots}<span class="psub">${esc(sub)}</span></button>`;
+}
+$('#mapScroll').addEventListener('click',e=>{
+  const b=e.target.closest('[data-p]');if(!b)return;const p=PL[b.dataset.p];
+  if(!isOpen(p.id)){say(`${p.name} masih terkunci. Selesaikan ${p.pre.map(i=>PL[i].name).join(' dan ')} dulu ya.`);return;}
+  if(!p.ready){say(`${p.name} sedang dibuat. Tunggu ya!`);return;}
+  openPlanet(p.id);
+});
+
+/* ---------- Layar planet ---------- */
+let curPid=null;
+function openPlanet(pid){
+  curPid=pid;const p=PL[pid],P=state.planets[pid],m=isMastered(pid);
+  const stones=[0,1,2].map(i=>{
+    const T=P.t[i],s=T.m||P.skip?'done':(tOpen(pid,i)?'now':'lock');
+    const w=winStat(T.h);
+    const sp=s==='done'?'Dikuasai':s==='now'?(w.n?`${w.ok} dari ${w.n} benar · ${w.s} misi. ${needText(pid,i)}`:'Ayo mulai'):'Terkunci';
+    return `<li class="stone ${s}"><span class="sn">${i+1}</span><span class="sl">${TINGKAT[i]}</span><span class="sp">${sp}</span></li>`;
+  }).join('');
+  $('#planetBody').innerHTML=`<div class="phero" style="--c:${p.c}"><span class="orb"></span><div><h1>${p.name}</h1><p>${p.topic}</p></div></div>
+    <ol class="path" aria-label="Tingkat">${stones}</ol>
+    <div class="pact"><button class="btn big" id="goMisi">${m?'Latihan lagi':'Mulai misi'}</button>${m?'<button class="btn star" id="goChal">Tantangan bintang</button>':''}</div>`;
+  show('planet');say(`${p.name}! ${p.hi}`);
+}
+$('#planetBody').addEventListener('click',e=>{
+  if(e.target.closest('#goMisi'))startRun(curPid,'latihan');
+  else if(e.target.closest('#goChal'))startRun(curPid,'tantangan');
+});
+$('#planetBack').addEventListener('click',()=>{renderMap();show('map');});
+
+/* ---------- Misi ---------- */
+let run=null;
+function genQ(){
+  const k=run.mode==='tantangan'?'c':run.k;let q,tries=0;
+  do{q=GEN[run.pid](k);tries++;}while(q.say===run.lastSay&&tries<6);
+  run.lastSay=q.say;return q;
+}
+function startRun(pid,mode){
+  if(mode!=='tes'&&overLimit()){restModal();return;}
+  state.sess++;
+  run={pid,mode,k:mode==='tes'?2:curT(pid),n:RUN_LEN[mode],i:0,res:[],stars:0,wrong:0,events:[],sess:state.sess,lastSay:'',dropped:false,suggest:null,msg:''};
+  save();run.q=genQ();show('game');showQ();
+}
+function showQ(){
+  const q=run.q;run.tries=0;run.lock=false;
+  $('#qdots').innerHTML=Array.from({length:run.n},(_,i)=>`<i class="${i<run.res.length?(run.res[i]?'ok':'miss'):''}${i===run.i?' now':''}"></i>`).join('');
+  $('#stage').innerHTML=(q.eq?`<div class="eq">${esc(q.text)}</div>`:`<p class="prompt">${esc(q.text)}</p>`)+`<div class="vis">${q.html||''}</div>`;
+  $('#stage').scrollTop=0;
+  $('#answers').innerHTML=q.kind==='choice'?q.choices.map(v=>`<button class="ans" data-v="${v}">${v}</button>`).join(''):'<p class="boardhint">Sentuh angkanya di papan</p>';
+  say((run.msg?run.msg+' ':'')+q.say);run.msg='';
+}
+function firstResult(ok){
+  run.res.push(ok);const L=logToday();L.q++;if(ok)L.ok++;
+  if(run.mode!=='tes'){
+    const k=run.mode==='tantangan'?'c':run.k;
+    run.events.push(...record(run.pid,k,ok,run.sess));
+    if(ok){state.stars++;run.stars++;run.wrong=0;}
+    else if(run.mode==='latihan'){
+      run.wrong++;
+      if(run.wrong>=3){
+        run.wrong=0;
+        if(run.k>0){run.k--;run.dropped=true;run.msg='Kita coba yang lebih mudah dulu ya.';}
+        else{const pre=PL[run.pid].pre.find(i=>PL[i].ready);if(pre)run.suggest=pre;}
+      }
+    }
+  }
+  save();
+}
+function onAnswer(v,el){
+  if(!run||run.lock)return;const q=run.q,ok=v===q.ans;
+  if(run.tries===0)firstResult(ok);
+  if(ok){
+    run.lock=true;el.classList.add('good');fx('good');hop($('#gameKancil'));
+    say(pick(PRAISE).replace('{n}',state.name));setTimeout(advance,1700);
+  }else{
+    run.tries++;el.classList.add('bad');el.disabled=true;fx('soft');
+    if(run.tries<2)say(pick(RETRY));else{run.lock=true;reveal();}
+  }
+}
+function reveal(){
+  const q=run.q;
+  const el=$(`#answers [data-v="${q.ans}"]`)||$(`#stage .board [data-n="${q.ans}"]`);
+  if(el)el.classList.add('good','reveal');
+  if(q.exp.html)$('#stage').insertAdjacentHTML('beforeend',`<div class="explain">${q.exp.html}</div>`);
+  say('Jawabannya '+q.ans+'. '+q.exp.say);
+  $('#answers').insertAdjacentHTML('beforeend','<button class="btn" id="nextQ">Lanjut</button>');
+  setTimeout(()=>{const ex=$('#stage .explain');if(ex&&ex.scrollIntoView)ex.scrollIntoView({block:'nearest',behavior:'smooth'});},50);
+}
+function advance(){
+  if(!run)return;run.i++;
+  if(run.suggest||run.i>=run.n){finish();return;}
+  run.q=genQ();showQ();
+}
+$('#answers').addEventListener('click',e=>{
+  if(e.target.closest('#nextQ')){advance();return;}
+  const b=e.target.closest('.ans');if(b&&!b.disabled)onAnswer(+b.dataset.v,b);
+});
+$('#stage').addEventListener('click',e=>{
+  const c=e.target.closest('.board.tappable [data-n]');
+  if(c&&run&&run.q.kind==='board'&&!c.disabled){onAnswer(+c.dataset.n,c);return;}
+  const t=e.target.closest('[data-tap]');
+  if(t&&!t.classList.contains('on')){
+    t.classList.add('on');
+    if(t.classList.contains('cell')){t.classList.add('full');t.innerHTML=STAR;}
+    const n=t.parentElement.querySelectorAll('[data-tap].on').length;say(String(n));
+  }
+});
+$('#sayAgain').addEventListener('click',()=>{if(run&&run.q)say(run.q.say);});
+$('#gameHome').addEventListener('click',()=>{try{speechSynthesis.cancel();}catch(e){}run=null;renderMap();show('map');});
+
+/* ---------- Hasil ---------- */
+function finish(){
+  const r=run;run=null;const p=PL[r.pid];const news=[];let speech='';let btns='';
+  const okN=r.res.filter(Boolean).length;
+  if(r.mode==='tes'){
+    const pass=okN>=4;
+    if(pass){
+      const before=openIds();const P=state.planets[r.pid];P.skip=true;P.t.forEach(t=>t.m=true);
+      news.push(`${okN} dari ${r.res.length} benar. ${p.name} langsung dikuasai.`);
+      openIds().filter(i=>!before.includes(i)).forEach(i=>news.push(`${PL[i].name} sekarang terbuka.`));
+    }else news.push(`${okN} dari ${r.res.length} benar. Mulai dari tingkat 1 dulu, itu titik mulai yang pas.`);
+    save();speech=`Tes selesai. ${news[0]}`;
+    btns=`<button class="btn" id="rDash">Ke Ruang Orang Tua</button>`;
+  }else{
+    r.events.forEach(ev=>{
+      if(ev.type==='tingkat'&&ev.k<2)news.push(`Tingkat ${ev.k+1} (${TINGKAT[ev.k]}) dikuasai! Tingkat ${ev.k+2} terbuka.`);
+      if(ev.type==='planet')news.push(`${PL[ev.pid].name} dikuasai! Tantangan bintang terbuka.`);
+      if(ev.type==='open')news.push(`${PL[ev.pid].name} sekarang terbuka!`);
+    });
+    if(r.mode==='latihan'&&!isMastered(r.pid)){const nt=needText(r.pid,curT(r.pid));if(nt)news.push(nt);}
+    if(r.dropped)news.push('Tadi kita latihan di tingkat yang lebih mudah dulu. Itu bagus untuk pemanasan.');
+    if(r.suggest)news.push(`Yuk mampir ke ${PL[r.suggest].name} dulu untuk pemanasan.`);
+    speech=`${r.stars>0?'Hebat':'Terima kasih sudah mencoba'}, ${state.name}! Kamu dapat ${r.stars} bintang.`+(news[0]?' '+news[0]:'');
+    const rest=overLimit();
+    if(rest){news.push(`Waktu main hari ini sudah ${Math.round(limitSec()/60)} menit. Kancil mau istirahat. Main lagi besok ya!`);speech+=' Sekarang waktunya istirahat. Main lagi besok ya!';}
+    btns=(r.suggest&&!rest?`<button class="btn big" id="rSuggest" data-p="${r.suggest}">Ke ${PL[r.suggest].name}</button>`:'')
+      +(!rest&&!r.suggest?`<button class="btn big" id="rAgain">Misi lagi</button>`:'')
+      +`<button class="btn ghost" id="rMap">Ke peta</button>`;
+  }
+  const stars=r.mode==='tes'?'':Array.from({length:r.n},(_,i)=>`<svg viewBox="0 0 24 24" class="${i<r.stars?'':'dim'}" aria-hidden="true"><use href="#star"/></svg>`).join('');
+  $('#result').innerHTML=`<svg class="kc hop" viewBox="0 0 120 120" aria-hidden="true"><use href="#kancil"/></svg>
+    <h1>${r.mode==='tes'?'Tes penempatan selesai':'Misi selesai!'}</h1>
+    ${stars?`<div class="earned" aria-label="${r.stars} bintang">${stars}</div>`:''}
+    ${news.length?`<ul class="news">${news.map(n=>`<li>${esc(n)}</li>`).join('')}</ul>`:''}
+    <div class="pact">${btns}</div>`;
+  $('#result').dataset.pid=r.pid;$('#result').dataset.mode=r.mode;
+  show('result');fx('good');say(speech);
+}
+$('#result').addEventListener('click',e=>{
+  const pid=$('#result').dataset.pid,mode=$('#result').dataset.mode;
+  if(e.target.closest('#rAgain'))startRun(pid,mode);
+  else if(e.target.closest('#rSuggest'))openPlanet(e.target.closest('#rSuggest').dataset.p);
+  else if(e.target.closest('#rMap')){renderMap();show('map');}
+  else if(e.target.closest('#rDash')){renderDash();show('dash');}
+});
+
+/* ---------- Modal: gerbang orang tua & istirahat ---------- */
+function modal(html){$('#mbox').innerHTML=html;$('#modal').hidden=false;}
+function closeModal(){$('#modal').hidden=true;$('#mbox').innerHTML='';}
+function gate(cb){
+  const a=ri(6,9),b=ri(6,9);
+  modal(`<h3>Khusus orang tua</h3><p>Berapa ${a} × ${b}?</p><input id="gateIn" inputmode="numeric" autocomplete="off" aria-label="Jawaban"><div class="rowb"><button class="btn" id="gateOk">Masuk</button><button class="btn ghost" id="gateNo">Batal</button></div><p class="msg" id="gateMsg"></p>`);
+  const inp=$('#gateIn');setTimeout(()=>inp.focus(),50);
+  const go=()=>{if(+inp.value.trim()===a*b){closeModal();cb();}else{$('#gateMsg').textContent='Jawaban belum tepat.';inp.value='';}};
+  $('#gateOk').onclick=go;$('#gateNo').onclick=closeModal;inp.onkeydown=e=>{if(e.key==='Enter')go();};
+}
+function restModal(){
+  modal(`<svg class="kc" viewBox="0 0 120 120" aria-hidden="true"><use href="#kancil"/></svg><h3>Kancil mau istirahat</h3><p>Main hari ini sudah cukup. Kita lanjut besok ya, ${esc(state.name)}!</p><button class="btn" id="restOk">Oke</button><button class="btn ghost sm" id="restMore">Orang tua: tambah 10 menit</button>`);
+  say(`Kancil mau istirahat. Kita lanjut besok ya, ${state.name}!`);
+  $('#restOk').onclick=closeModal;
+  $('#restMore').onclick=()=>gate(()=>{const t=dayKey();state.extra={date:t,min:(state.extra&&state.extra.date===t?state.extra.min:0)+10};save();});
+}
+
+/* ---------- Ruang orang tua ---------- */
+$('#toDash').addEventListener('click',()=>gate(()=>{renderDash();show('dash');}));
+function chip(cls,t){return `<span class="chip ${cls}">${esc(t)}</span>`;}
+function renderDash(){
+  const L=logToday(),lim=Math.round(limitSec()/60);
+  const days=[];for(let i=6;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);days.push(d);}
+  const mins=days.map(d=>Math.round(((state.log[dayKey(d)]||{}).sec||0)/60));
+  const maxM=Math.max(lim,...mins,1);
+  const DN=['Min','Sen','Sel','Rab','Kam','Jum','Sab'];
+  const cw=280,ch=120,bw=26,gap=(cw-7*bw)/6;
+  let chart=`<svg class="chart" viewBox="0 0 ${cw} ${ch+34}" role="img" aria-label="Menit belajar 7 hari terakhir">`;
+  const ly=ch-(lim/maxM)*ch+14;
+  chart+=`<line x1="0" x2="${cw}" y1="${ly}" y2="${ly}" style="stroke:var(--line2);stroke-dasharray:4 4"/><text x="${cw}" y="${ly-4}" style="fill:var(--muted);font-size:10px;text-anchor:end">batas ${lim} mnt</text>`;
+  mins.forEach((m,i)=>{const x=i*(bw+gap),h=Math.max(2,(m/maxM)*ch),y=ch-h+14;
+    chart+=`<rect x="${x}" y="${y}" width="${bw}" height="${h}" rx="5" style="fill:${i===6?'var(--carrot)':'var(--sea)'}"/><text x="${x+bw/2}" y="${y-4}" style="fill:var(--ink);font-size:11px;text-anchor:middle">${m}</text><text x="${x+bw/2}" y="${ch+30}" style="fill:var(--muted);font-size:11px;text-anchor:middle">${DN[days[i].getDay()]}</text>`;});
+  chart+='</svg>';
+
+  const readyRows=PLANETS.filter(p=>p.ready).map(p=>{
+    const P=state.planets[p.id],open=isOpen(p.id);
+    const cells=[0,1,2].map(i=>{const T=P.t[i],w=winStat(T.h);
+      if(T.m||P.skip)return `<td>${chip('ok','Dikuasai')}</td>`;
+      if(!open||!tOpen(p.id,i))return `<td>${chip('lock','Terkunci')}</td>`;
+      return `<td>${chip('go','Dilatih')}<div class="small">${w.n?`${w.ok}/${w.n} benar · ${w.s} misi<br>${esc(needText(p.id,i))}`:'Belum ada'}</div></td>`;}).join('');
+    const c=winStat(P.c.h);
+    const chal=isMastered(p.id)?`<td>${c.n?`${c.ok}/${c.n} benar`:'Terbuka'}</td>`:`<td>${chip('lock','Terkunci')}</td>`;
+    const act=!isMastered(p.id)&&open?`<button class="btn sm" data-tes="${p.id}">Tes penempatan</button>`:(!open?`<button class="btn sm ghost" data-unlock="${p.id}">Buka manual</button>`:'');
+    return `<tr><td><b>${p.name}</b><div class="small">${p.topic}</div></td>${cells}${chal}<td>${act}</td></tr>`;
+  }).join('');
+
+  const review=[];
+  PLANETS.filter(p=>p.ready).forEach(p=>{const P=state.planets[p.id];P.t.forEach((T,i)=>{const w=winStat(T.h);if(!T.m&&!P.skip&&w.n>=5&&w.ok/w.n<0.6)review.push(`${p.name} · tingkat ${i+1} (${TINGKAT[i]}): ${w.ok}/${w.n} benar`);});});
+
+  const allRows=PLANETS.map(p=>{
+    const open=isOpen(p.id),m=isMastered(p.id);
+    const st=m?chip('ok','Dikuasai'):!p.ready?(open?chip('soon','Segera dibuat'):chip('soon','Belum dibuat')):open?chip('go','Terbuka'):chip('lock','Terkunci');
+    return `<tr><td class="small">${BANDS[p.band].age}</td><td><b>${p.name}</b><div class="small">${p.topic}</div></td><td class="small">${p.pre.length?p.pre.map(i=>PL[i].name.replace('Planet ','')).join(', '):'—'}</td><td>${st}</td></tr>`;
+  }).join('');
+
+  const v=idVoice();
+  $('#dashBody').innerHTML=`
+  <div class="dhead"><button class="iconbtn" id="dBack" aria-label="Kembali ke peta"><svg viewBox="0 0 24 24"><use href="#home"/></svg></button>
+    <div><h1>Ruang Orang Tua</h1><p class="small">Kemajuan ${esc(state.name)} · ${esc(remote.status)}</p></div></div>
+  <div class="dgrid">
+    <section class="panel"><h2>Hari ini</h2>
+      <div class="kpis"><div class="kpi"><b>${Math.round(L.sec/60)}<small style="font-size:18px"> / ${lim}</small></b><span>menit main</span></div>
+      <div class="kpi"><b>${L.q}</b><span>soal dijawab</span></div>
+      <div class="kpi"><b>${L.q?Math.round(L.ok/L.q*100)+'%':'—'}</b><span>benar di percobaan pertama</span></div>
+      <div class="kpi"><b>${state.stars}</b><span>total bintang</span></div></div>
+      ${chart}
+    </section>
+    <section class="panel"><h2>Perlu diulang</h2>
+      ${review.length?`<ul class="rules">${review.map(r=>`<li>${esc(r)}</li>`).join('')}</ul><p class="small">Akurasi di bawah 60% dari 5 soal terakhir atau lebih. Sistem akan otomatis menurunkan tingkat kalau 3 kali salah beruntun.</p>`:'<p class="small">Belum ada topik yang perlu diulang. Bagian ini terisi setelah ada minimal 5 jawaban di satu tingkat.</p>'}
+    </section>
+    <section class="panel wide"><h2>Planet aktif</h2>
+      <div class="tbl"><table><thead><tr><th>Planet</th><th>Tingkat 1<br>Dibantu</th><th>Tingkat 2<br>Sedikit bantuan</th><th>Tingkat 3<br>Mandiri</th><th>Tantangan</th><th></th></tr></thead><tbody>${readyRows}</tbody></table></div>
+      <p class="small">Tes penempatan: 5 soal tingkat Mandiri. Kalau 4 benar, planet langsung dianggap dikuasai dan planet berikutnya terbuka. Berikan iPad ke anak setelah menekan tombolnya.</p>
+      <p class="msg" id="dMsg1"></p>
+    </section>
+    <section class="panel wide"><h2>Peta lengkap usia 5–15 dan prasyarat</h2>
+      <div class="tbl"><table><thead><tr><th>Usia</th><th>Planet</th><th>Prasyarat</th><th>Status</th></tr></thead><tbody>${allRows}</tbody></table></div>
+    </section>
+    <section class="panel"><h2>Aturan naik level</h2>
+      <ol class="rules">
+        <li>Tiap planet punya 3 tingkat: Dibantu, Sedikit bantuan, Mandiri.</li>
+        <li>Tingkat dikuasai kalau minimal 8 dari 10 jawaban terakhir benar di percobaan pertama, tersebar di minimal 2 misi.</li>
+        <li>Planet dikuasai saat tingkat Mandiri dikuasai. Planet lain terbuka hanya jika semua prasyaratnya dikuasai.</li>
+        <li>3 kali salah beruntun: turun satu tingkat di misi itu. Kalau sudah di tingkat 1, anak diarahkan ke planet prasyarat.</li>
+        <li>Salah pertama boleh coba lagi. Salah kedua, jawaban dan penjelasan bergambar ditampilkan.</li>
+        <li>Tantangan bintang terbuka setelah planet dikuasai. Isinya soal lebih dalam, bukan materi kelas berikutnya.</li>
+      </ol>
+    </section>
+    <section class="panel"><h2>Pengaturan</h2>
+      <div class="field"><label for="setName">Nama anak</label><input id="setName" value="${esc(state.name)}" maxlength="24"></div>
+      <div class="field"><label for="setDaily">Batas main per hari</label><select id="setDaily">${[10,15,20,30].map(m=>`<option value="${m}"${state.settings.daily===m?' selected':''}>${m} menit</option>`).join('')}</select></div>
+      <label class="check"><input type="checkbox" id="setVoice"${state.settings.voice?' checked':''}> Instruksi suara</label>
+      <div class="field"><label for="setRate">Kecepatan suara</label><select id="setRate">${[[0.8,'Pelan'],[0.9,'Sedang'],[1,'Normal']].map(([r,l])=>`<option value="${r}"${state.settings.rate===r?' selected':''}>${l}</option>`).join('')}</select></div>
+      <div class="rowb"><button class="btn sm" id="testVoice">Coba suara</button></div>
+      <p class="small">${v?'Suara Bahasa Indonesia ditemukan: '+esc(v.name)+'.':'Suara Bahasa Indonesia belum ditemukan di perangkat ini. Di iPad: Pengaturan › Aksesibilitas › Konten Lisan › Suara › Bahasa Indonesia, lalu unduh salah satu suara.'}</p>
+    </section>
+    <section class="panel"><h2>Data kemajuan</h2>
+      <p class="small">${esc(remote.status)}. Simpan cadangan sesekali supaya kemajuan tidak hilang kalau data browser terhapus.</p>
+      <div class="rowb"><button class="btn sm" id="doExport">Simpan cadangan</button><label class="btn sm ghost" for="importFile" style="display:inline-grid;place-items:center">Pulihkan dari file</label><input type="file" id="importFile" accept=".json,application/json" hidden></div>
+      <div id="exportBox"></div>
+      <details><summary class="small">Pulihkan dengan menempel teks cadangan</summary><div class="field" style="margin-top:8px"><textarea id="pasteIn" aria-label="Teks cadangan"></textarea><button class="btn sm" id="doPaste">Pulihkan</button></div></details>
+      <div class="rowb"><button class="btn sm ghost" id="doReset">Hapus semua kemajuan</button></div>
+      <p class="msg" id="dMsg"></p>
+    </section>
+  </div>`;
+}
+function dmsg(t,id){const m=$('#'+(id||'dMsg'));if(m)m.textContent=t;}
+function applyImport(obj){
+  if(!obj||typeof obj!=='object'||!obj.planets){dmsg('File ini bukan cadangan Kancil Menjelajah Angka.');return;}
+  state=migrate(obj);save();pushRemote();renderDash();dmsg('Kemajuan berhasil dipulihkan.');
+}
+let resetArmed=0;
+$('#dashBody').addEventListener('click',async e=>{
+  const t=e.target;
+  if(t.closest('#dBack')){renderMap();show('map');return;}
+  const tes=t.closest('[data-tes]');if(tes){startRun(tes.dataset.tes,'tes');return;}
+  const un=t.closest('[data-unlock]');if(un){state.planets[un.dataset.unlock].open=true;save();renderDash();dmsg(PL[un.dataset.unlock].name+' dibuka manual.','dMsg1');return;}
+  if(t.closest('#testVoice')){say(`Halo ${state.name}! Ayo bantu Kancil menghitung wortel.`);return;}
+  if(t.closest('#doExport')){
+    const json=JSON.stringify(state,null,1),fn=`kemajuan-${state.name.toLowerCase().replace(/[^a-z0-9]+/g,'-')||'anak'}-${dayKey()}.json`;
+    const dl=await dlP;
+    if(dl){try{await dl.save({filename:fn,data:json});dmsg('Cadangan disimpan.');return;}catch(err){if(err&&err.code==='declined'){dmsg('Penyimpanan dibatalkan.');return;}}}
+    try{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([json],{type:'application/json'}));a.download=fn;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},1500);}catch(err){}
+    $('#exportBox').innerHTML=`<div class="field"><textarea id="expText" readonly aria-label="Teks cadangan">${esc(json)}</textarea><button class="btn sm" id="copyExp">Salin teks</button></div>`;
+    dmsg('File cadangan diunduh (cek app Files › Unduhan). Teks di atas bisa disalin sebagai cadangan kedua.');return;
+  }
+  if(t.closest('#copyExp')){const ta=$('#expText');try{await navigator.clipboard.writeText(ta.value);dmsg('Teks cadangan disalin.');}catch(err){ta.focus();ta.select();dmsg('Teks sudah dipilih. Tekan Salin.');}return;}
+  if(t.closest('#doPaste')){try{applyImport(JSON.parse($('#pasteIn').value));}catch(err){dmsg('Teks cadangan tidak terbaca. Pastikan tersalin lengkap.');}return;}
+  if(t.closest('#doReset')){
+    if(Date.now()-resetArmed<5000){const keep={name:state.name,settings:state.settings};state=fresh();Object.assign(state,keep);save();renderDash();dmsg('Semua kemajuan dihapus.');resetArmed=0;}
+    else{resetArmed=Date.now();t.closest('#doReset').textContent='Tekan sekali lagi untuk menghapus';}
+  }
+});
+$('#dashBody').addEventListener('change',e=>{
+  const t=e.target;
+  if(t.id==='setName'){state.name=t.value.trim().slice(0,24)||'Penjelajah';save();}
+  else if(t.id==='setDaily'){state.settings.daily=+t.value;save();renderDash();}
+  else if(t.id==='setVoice'){state.settings.voice=t.checked;save();}
+  else if(t.id==='setRate'){state.settings.rate=+t.value;save();}
+  else if(t.id==='importFile'&&t.files&&t.files[0]){
+    const fr=new FileReader();fr.onload=()=>{try{applyImport(JSON.parse(fr.result));}catch(err){dmsg('File tidak terbaca.');}};fr.readAsText(t.files[0]);
+  }
+});
+
+/* ---------- Mulai ---------- */
+$('#startHello').textContent='Halo, '+state.name+'!';
+$('#startBtn').addEventListener('click',()=>{
+  try{actx=new (window.AudioContext||window.webkitAudioContext)();}catch(e){}
+  try{speechSynthesis.getVoices();}catch(e){}
+  renderMap();show('map');fx('good');
+  say(`Halo ${state.name}! Ayo jelajahi planet angka bersama Kancil. Pilih planet yang menyala.`);
+});
+try{if('speechSynthesis' in window)speechSynthesis.onvoiceschanged=()=>{};}catch(e){}
+
+if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));}
+window.__kancil={GEN,masteredHist,mk,PLANETS};
+})();
+</script>
+</body>
+</html>

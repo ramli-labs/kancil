@@ -1,0 +1,16 @@
+{
+  "name": "Kancil Menjelajah Angka",
+  "short_name": "Kancil",
+  "description": "Gim belajar matematika untuk anak usia 5–15 tahun dengan peta planet dan prasyarat.",
+  "lang": "id",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#131936",
+  "theme_color": "#131936",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}
